@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { logAuthDiagnostic, sanitizeAuthError, summarizePkceCookies } from "@/lib/auth/diagnostics";
+import { pkceFlowIdCookieName, sanitizePkceFlowId } from "@/lib/auth/pkce-flow";
 import { createAuthCallbackUrl, getPostSignInPath } from "@/lib/auth/routes";
 import { createSupabaseRouteClient } from "@/lib/supabase/route";
 
@@ -32,10 +33,24 @@ export async function GET(request: NextRequest) {
       redirectOrigin: new URL(data.url).origin,
       callbackOrigin: new URL(redirectTo).origin,
       callbackPath: new URL(redirectTo).pathname,
+      hasFlowId: Boolean(sanitizePkceFlowId(data.flowId)),
       pkceCookies,
     });
 
-    return applyCookies(NextResponse.redirect(data.url));
+    const response = applyCookies(NextResponse.redirect(data.url));
+    const flowId = sanitizePkceFlowId(data.flowId);
+
+    if (flowId) {
+      response.cookies.set(pkceFlowIdCookieName, flowId, {
+        httpOnly: true,
+        maxAge: 10 * 60,
+        path: "/",
+        sameSite: "lax",
+        secure: requestUrl.protocol === "https:",
+      });
+    }
+
+    return response;
   } catch (error) {
     logAuthDiagnostic("error", "google_oauth_start_exception", {
       error: sanitizeAuthError(error),
