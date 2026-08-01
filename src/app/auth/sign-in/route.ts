@@ -1,22 +1,19 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { logAuthDiagnostic, sanitizeAuthError, summarizePkceCookies } from "@/lib/auth/diagnostics";
-import { getPostSignInPath } from "@/lib/auth/routes";
-import { env } from "@/lib/env";
+import { createAuthCallbackUrl, getPostSignInPath } from "@/lib/auth/routes";
 import { createSupabaseRouteClient } from "@/lib/supabase/route";
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
-  const origin = env.publicAppUrl || requestUrl.origin;
   const next = requestUrl.searchParams.get("next") || getPostSignInPath();
-  const redirectTo = new URL("/auth/callback", origin);
-  redirectTo.searchParams.set("next", next);
+  const redirectTo = createAuthCallbackUrl(requestUrl.origin, next);
 
   try {
     const { supabase, applyCookies, getPendingCookieNames } = createSupabaseRouteClient(request);
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: redirectTo.toString(),
+        redirectTo,
       },
     });
 
@@ -33,8 +30,8 @@ export async function GET(request: NextRequest) {
 
     logAuthDiagnostic("info", "google_oauth_start_redirect", {
       redirectOrigin: new URL(data.url).origin,
-      callbackOrigin: redirectTo.origin,
-      callbackPath: redirectTo.pathname,
+      callbackOrigin: new URL(redirectTo).origin,
+      callbackPath: new URL(redirectTo).pathname,
       pkceCookies,
     });
 

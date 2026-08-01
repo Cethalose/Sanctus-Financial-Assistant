@@ -16,3 +16,9 @@ export function isAuthOnlyPath(pathname: string): boolean {
 export function getPostSignInPath(): string {
   return "/onboarding";
 }
+
+export function createAuthCallbackUrl(origin: string, next: string): string {
+  const callbackUrl = new URL("/auth/callback", origin);
+  callbackUrl.searchParams.set("next", next);
+  return callbackUrl.toString();
+}

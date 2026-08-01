@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isAuthOnlyPath, isProtectedPath } from "./routes";
+import { createAuthCallbackUrl, isAuthOnlyPath, isProtectedPath } from "./routes";
 
 describe("auth route classification", () => {
   it("marks budget and account routes as protected", () => {
@@ -18,5 +18,11 @@ describe("auth route classification", () => {
   it("marks sign-in as auth-only", () => {
     expect(isAuthOnlyPath("/sign-in")).toBe(true);
     expect(isAuthOnlyPath("/dashboard")).toBe(false);
+  });
+
+  it("creates callback URLs on the request origin", () => {
+    expect(createAuthCallbackUrl("https://preview.example.com", "/dashboard")).toBe(
+      "https://preview.example.com/auth/callback?next=%2Fdashboard",
+    );
   });
 });
