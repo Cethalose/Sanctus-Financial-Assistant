@@ -1,6 +1,20 @@
 import type { User } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+type ProfileClient = {
+  from(table: "profiles"): {
+    upsert(
+      values: {
+        id: string;
+        email: string | null;
+        full_name: string | null;
+        avatar_url: string | null;
+      },
+      options: { onConflict: "id" },
+    ): PromiseLike<{ error: { message: string } | null }>;
+  };
+};
+
 type ProfileMetadata = {
   full_name?: string;
   name?: string;
@@ -8,9 +22,9 @@ type ProfileMetadata = {
   picture?: string;
 };
 
-export async function ensureProfile(user: User): Promise<void> {
+export async function ensureProfile(user: User, client?: ProfileClient): Promise<void> {
   const metadata = user.user_metadata as ProfileMetadata;
-  const supabase = await createSupabaseServerClient();
+  const supabase = client ?? (await createSupabaseServerClient());
 
   const { error } = await supabase.from("profiles").upsert(
     {

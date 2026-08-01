@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (user) {
-      await ensureProfile(user);
+      await ensureProfile(user, supabase);
     }
 
     logAuthDiagnostic("info", "google_oauth_callback_succeeded", {
