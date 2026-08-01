@@ -321,6 +321,31 @@ select {
   line-height: 1.5;
 }
 
+.diagnostics {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+}
+
+.diagnostics div {
+  display: grid;
+  gap: 2px;
+}
+
+.diagnostics dt {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.diagnostics dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 0.86rem;
+}
+
 @media (max-width: 820px) {
   .shell {
     padding: 18px;
